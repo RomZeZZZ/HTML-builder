@@ -1,5 +1,5 @@
 const fs = require('fs'),
-  path = require('path');
+      path = require('path');
 
 fs.readdir(__dirname, { withFileTypes: true }, (err, files) => {
   if (err) console.log(err);
