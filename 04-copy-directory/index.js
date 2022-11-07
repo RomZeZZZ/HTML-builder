@@ -21,19 +21,12 @@ fs.readdir(__dirname, { withFileTypes: true }, (err, files) => {
   }
 });
 
-function createFile (fileName) {
-  fs.writeFile (path.join(__dirname, 'files-copy', fileName), '', (err) => {
-    if(err) console.log(err);
-  });
-  return path.join(__dirname, 'files-copy', fileName);
-}
-
 function createAndCopyFiles() {
   fs.readdir(path.join(__dirname, 'files'), (err, files) => {
     if (err) console.log(err);
     else {
       files.forEach(file => {
-        fs.copyFile(path.join(__dirname, 'files', file), createFile(file), (err) => {
+        fs.copyFile(path.join(__dirname, 'files', file), path.join(__dirname, 'files-copy', file), (err) => {
           if(err) console.log(err);
         });
       });
