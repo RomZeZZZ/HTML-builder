@@ -12,7 +12,7 @@ fs.readdir(__dirname, { withFileTypes: true }, (err, files) => {
       if (!file.isFile() && file.name == 'project-dist') {
         filesCopyStatus = true;
         clearDir(path.join(__dirname, 'project-dist'));
-        buildDist();
+        // buildDist();
       }
     });
     if (!filesCopyStatus) {
