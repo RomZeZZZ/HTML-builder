@@ -11,6 +11,7 @@ fs.readdir(path.join(__dirname, 'project-dist'), { withFileTypes: true }, (err, 
       if (file.isFile() && file.name == 'bundle.css') {
         filesCopyStatus = true;
         console.log('файл есть');
+        copyFiles();
       }
     });
     if (!fileIsHere) {
