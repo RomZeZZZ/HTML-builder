@@ -1,9 +1,11 @@
 const fs = require('fs'),
       path = require('path');
-let newPathCss;
-let indexHtmlPath;
-let dataArr = [];
-// Create directory
+let newPathCss,
+    indexHtmlPath,
+    dataArr = [],
+    templateData = {},
+    indexHtmlString = '';
+
 fs.readdir(__dirname, { withFileTypes: true }, (err, files) => {
   if (err) console.log(err);
   else {
@@ -11,8 +13,13 @@ fs.readdir(__dirname, { withFileTypes: true }, (err, files) => {
     files.forEach(file => {
       if (!file.isFile() && file.name == 'project-dist') {
         filesCopyStatus = true;
-        clearDir(path.join(__dirname, 'project-dist'));
-        // buildDist();
+        fs.promises.rm(path.join(__dirname, 'project-dist'), { recursive:true, retryDelay:0 })
+        .then(() => {
+          buildDist();
+        })
+        .catch(err => {
+          console.log(err);
+        });
       }
     });
     if (!filesCopyStatus) {
@@ -26,6 +33,7 @@ function buildDist() {
     if(err) throw err;
   });
   indexHtmlPath = createFile(path.join(__dirname, 'project-dist', 'index.html'));
+  copyTemplateData(path.join(__dirname, 'components'));
   newPathCss = createFile(path.join(__dirname, 'project-dist', 'style.css'));
   collectStyles(path.join(__dirname, 'styles'), newPathCss);
   createDir(path.join(__dirname, 'project-dist', 'assets'));
@@ -61,23 +69,12 @@ function createFile (path) {
   fs.writeFile (path, '', (err) => {
     if(err) console.log(err);
   });
-
-
   return path;
 }
 
 function createDir(pathDir) {
   fs.mkdir(pathDir, err => {
     if(err) throw err;
-  });
-}
-
-function clearDir(pathDir) {
-  fs.rm(pathDir, { recursive:true, retryDelay:0 }, (err) => {
-    if(err) {
-      console.error(err.message);
-      return;
-    }
   });
 }
 
@@ -98,3 +95,37 @@ function copyDir(pathDir, pathNewDir) {
     }
   });
 }
+
+function copyTemplateData(componentsPath) {
+  fs.readdir(componentsPath, { withFileTypes: true }, (err, files) => {
+    files.forEach(file => {
+      let fileName = file.name;
+      if (file.isFile() && path.parse(path.join(componentsPath, file.name)).ext == '.html') {
+        fs.promises.readFile(path.join(componentsPath, file.name))
+        .then(file => {
+          templateData[(path.parse(path.join(componentsPath, fileName)).name)] = file.toString();
+        })
+        .then(() => {
+          fs.readFile(path.join(__dirname, 'template.html'), (err, data) => {
+            indexHtmlString = data.toString();
+            for (let key in templateData) {
+              if (indexHtmlString.includes(`{{${key}}}`)) {
+                indexHtmlString = indexHtmlString.replace(`{{${key}}}`, templateData[key]);
+              }
+            }
+            fs.promises.writeFile(indexHtmlPath, indexHtmlString)
+            .catch(err => {
+              console.log(err);
+            });
+          });
+        })
+        .catch(err => {
+          console.log(err);
+        });
+      }
+    })
+  });
+}
+
+
+
